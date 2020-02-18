@@ -1,0 +1,48 @@
+---
+title: "Week 7: Tidy Data and Data Wrangling"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(dplyr)
+library(readr)
+```
+
+## The dataset
+First read in the data set which is available at: [http://www.math.montana.edu/ahoegh/teaching/stat408/datasets/BaltimoreTowing.csv](http://www.math.montana.edu/ahoegh/teaching/stat408/datasets/BaltimoreTowing.csv).
+```{r, message = F}
+baltimore.tow <- 
+  read_csv('http://www.math.montana.edu/ahoegh/teaching/stat408/datasets/BaltimoreTowing.csv')
+str(baltimore.tow)
+```
+
+## Motivating Exercise: group_by()
+
+Now compute the average towing cost grouped by month.
+
+## Exercise: Using the substr() function
+Use the substr() function to extract month and create a new variable in R. 
+
+## Exercise: Using the strsplit() function
+Use the strsplit() function to remove the dollar sign from the cost.
+
+
+## Exercise: Stringr approach
+Use the `stringr` package to remove (replace) the dollar sign. Note that a dollar sign is a special character, so you'll need to use `\\$`.
+
+## Exercise: Delete Misc. Type Vehicles
+
+First we will delete golf carts, boats, and trailers. There are several ways to do this, consider making a new data frame called balt.tow.small that does not include golf carts, boats, and trailers.
+
+
+## Exercise: Create Additional Groups
+
+Now we need to create a variable for the additional groups below.
+
+1. Cars - (Car, convertible)
+2. Large Cars - (SUV, Station Wagon, Sport Utility Vehicle, Van, Taxi)
+3. Trucks - (Pick-up Truck, Pickup Truck)
+4. Large Trucks - (Truck, Tractor Trailer, Tow Truck, Tractor, Construction Equipment, Commercial Truck)
+5. Bikes - (Motor Cycle (Street Bike), Dirt Bike, All terrain - 4 wheel bike, Mini-Bike)
+
