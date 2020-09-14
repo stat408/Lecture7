@@ -1,5 +1,5 @@
 ---
-title: "Week 7: Tidy Data and Data Wrangling"
+title: "Data Viz Principles"
 output:
   revealjs::revealjs_presentation:
     theme: white
@@ -10,318 +10,386 @@ output:
 
 ```{r setup, include=FALSE}
 library(knitr)
-library(dplyr)
-library(readr)
-```
-# Tidy Data
-
-## Rules for Tidy Data
-The concept of tidy data can be attributed to Hadley Wickham and has three principles for organizing data. [Tidy Data Reference](https://vita.had.co.nz/papers/tidy-data.pdf)
-
-1. Each variable must have its own column,
-2. Each observation must have its own row, and
-3. Each value must have its own cell.
-
-## Rules for Tidy Data
-
-![Visual Representation of Tidy Data. Source: R4DS ](images/tidy.png)
-
-
-## Why use Tidy Data
-
-*Tidy datasets are all alike, but every messy dataset is messy in its own way. - Hadley Wickham*
-
-- Storing data in a consistent way gives familiarity with methods for manipulating data.
-- Tidy data structure takes advantage of vectorised operations in R
-- Many useful packages: such as `dplyr` and `ggplot2` require tidy data.
-
-
-# Baltimore Towing Data
-
-## An Overview
-The first example focuses on a subset of a dataset that contains information on vehicles towed in Baltimore, MD:
-
-- A larger version of this dataset along with additional descriptions can be found at:  [https://data.baltimorecity.gov/Transportation/DOT-Towing/k78j-azhn](https://data.baltimorecity.gov/Transportation/DOT-Towing/k78j-azhn). 
-
-- The full version of the dataset contains 61,000 rows and 36 columns, where each row corresponds to a vehicle and the columns are information pertaining to the vehicle.
-
-- We will be working with a smaller dataset with approximately 30,000 rows and 5 columns.
-
-## The dataset
-First read in the data set which is available at: [http://www.math.montana.edu/ahoegh/teaching/stat408/datasets/BaltimoreTowing.csv](http://www.math.montana.edu/ahoegh/teaching/stat408/datasets/BaltimoreTowing.csv).
-```{r, message = F}
-baltimore.tow <- 
-  read_csv('http://www.math.montana.edu/ahoegh/teaching/stat408/datasets/BaltimoreTowing.csv')
-str(baltimore.tow)
+library(tidyverse)
+library(lubridate)
+knitr::opts_chunk$set(echo = TRUE)
+knitr::knit_hooks$set(mysize = function(before, options, envir) {
+  if (before) 
+    return(options$size)
+})
 ```
 
-## Information for a few vehicles
+# Data Viz Resources
+
+## Edward Tufte{.centered}
+![Tufte: Visual Display of Quantitative Information](images/tufte.gif)
+
+## William Cleveland{.centered}
+![Cleveland: The Elements of Graphing Data](images/Cleveland.jpg)
+
+## Nathan Yau (FlowingData){.centered}
+![Yau: Visualize This](images/Yau.jpg)
+
+# Telling Stories with Data
+
+## Telling Stories with Data{.centered}
+
+![One of the best ways to explore and understand a dataset is with visualization.](images/food.png)
+
+
+## Telling Stories with Data
+
+- What is Statistics?
+    - hypothesis tests
+    - pattern finding
+    - predictive modeling
+    - *storytelling with data* can help you solve real-world problems (predicting unrest, decreasing crime) or it can help you stay more informed
+
+# Data viz is more than numbers
+
+## Journalism{.centered}
+
+![Spending Allocation](images/foodspending.png)
+
+## Art{.centered}
+![Starry night for the color blind](images/VanGogh.png)
+
+## Entertainment{.centered}
+
+![Kobe Bryant Shot Chart](images/Kobe.png)
+
+## Compelling - Hans Rosling
+
+![Hans Rosling](images/Hans.jpg)
+
+[http://www.youtube.com/embed/jbkSRLYSojo?rel=0](http://www.youtube.com/embed/jbkSRLYSojo?rel=0)
+
+
+
+# Data Viz: What to look for
+
+## Patterns{.centered}
+
+![Why so many births around Sept. 25?](images/births.jpg)
+
+## Relationships{.centered}
+
+![Age vs. hospital visits](images/Punching.png)
+
+## Questionable Data{.centered}
+
+![Fox News](images/Bush.png)
+
+# Design Principles
+
+## Explain Encodings{.centered}
+![what is purple?](images/emily.png)
+
+## Explain Encodings{.centered}
+![what is gray?](images/Sophia.png)
+
+## Label Axes{.centered}
+
+![Calories for menu items](images/calories.png)
+
+
+## Keep Geometry in Check{.centered}
+
+![proper scaling](images/moon.png)
+
+## Include Sources{.centered}
+
+![source your data](images/life.png)
+
+
+## Spotting Visualization Lies{.centered}
+
+![FlowingData Guide for Spotting Visualization Lies:](images/Truncated.png)
+
+# Types of Graphs
+
+
+## Why use Graphics
+
+- Why do you, or have you, in the past used data graphics?
+    - Exploratory Graphics
+    - Publication Graphics
+    - Presentation Graphics
+
+# Graphics in R
+
+## Visualizing Patterns Over Time
+
+- What are we looking for with data over time?
+    - Trends (increasing/decreasing)
+    - Are season cycles present?
+- Identifying these patterns requires looking beyond single points
+- We are also interested in looking at more the data in more detail
+    - Are there outliers?
+    - Do any time periods look out of place?
+    - Are there spikes or dips?
+    - What causes any of these irregularities?
+
+
+## Capital BikeShare{.centered}
+
+![](images/bike1.png)
+
+## Capital BikeShare{.centered}
+
+![](images/bike2.png)
+
+## Capital Bikeshare Data
+
+```{r , mysize=TRUE, size='\\tiny'}
+bike.data <- read_csv('http://www.math.montana.edu/ahoegh/teaching/stat408/datasets/Bike.csv')
+```
+
+## Capital Bikeshare Data
+
+```{r}
+bike.data <- bike.data %>% mutate(year = as.factor(year(datetime)), month = as.factor(month(datetime)))
+monthly.counts <- bike.data %>% group_by(month) %>% summarize(num_bikes = sum(count), .groups = 'drop') %>% arrange(month)
+monthly.counts
+```
+
+## Discrete Points: Bar Charts
 
 ```{r, echo = F}
-kable(head(baltimore.tow, 8))
-```
-
-# dplyr package
-
-## dplyr package
-We have a set of tools to complete the analysis, but we are going to use a packaged called `dplyr` to do the data transformation and aggregation for this problem.
-
-There is a [information page](https://dplyr.tidyverse.org) on the functionality of `dplyr`.
-
-## Motivating Exercise: group_by()
-
-Now compute the average towing cost grouped by month.
-
-## Not Solution: group_by()
-
-Now compute the average towing cost grouped by month.
-
-```{r, eval = F}
-baltimore.tow %>% 
-  group_by(month) %>% 
-  summarize(mean.cost = mean(totalPaid))
-```
-
-## tibbles 
-
-- tibbles are a modern rethinking of data.frame() in R.
-- tibbles can be coerced into a data.frame with `as.data.frame()`
-- tibbles only print first 10 rows when printing and also includes column report type
-
-# Data Wrangling
-
-## Data Wrangling
-As a statistician or more generally a data scientist the ability to manipulate, process, clean, and merge datasets is an essential skill. 
-
-- These skills are generally referred to as data wrangling or munging.
-- In a data analysis or visualization setting, they will undoubtedly require a majority of your time.
-- Wrangling data can be a painful process.
-- This lecture will provide some tools and example of organizing data.
-
-## Data Wrangling Concepts
-
-- Dealing with strings
-- Dealing with date/time objects
-- Wide and thin datasets
-
-
-## Motivating Exercise: group_by()
-
-Now compute the average towing cost grouped by month.
-
-
-```{r}
-kable(head(baltimore.tow, 4))
+monthly.counts %>% ggplot(aes(y = num_bikes, x = month)) + geom_bar(stat = 'identity') + xlab('Month') + ylab('Bike Rentals') + labs(title = 'Bike Rentals per Month in 2011-2012 \n Capital Bikeshare in Washington, DC', caption = 'Source: www.capitalbikeshare.com')
 ```
 
 
-##  `substr()` function
-Consider adding a column for year to the data set. This can be done using `substr().`
+## Discrete Points: Bar Charts - Code
 
-*Usage*: substr(x, start, stop)
-
-*Arguments*: 
-
-- x, text	a character vector.
-- start, first integer. The first element to be extracted
-- stop, last integer. The last element to be extracted
-
-## Exercise: Using the substr() function
-Use the substr() function to extract month and create a new variable in R. 
-
-## Solution: Using the substr() function
-Use the substr() function to extract month and create a new variable in R. 
-
-```{r}
-baltimore.tow$month <- substr(baltimore.tow$receivingDateTime,0,2)
-head(baltimore.tow$month)
+```{r,echo=T,eval=F, mysize=TRUE, size='\\tiny'}
+monthly.counts %>% 
+  ggplot(aes(y = num_bikes, x = month)) + 
+  geom_bar(stat = 'identity') + xlab('Month') + 
+  ylab('Bike Rentals') + 
+  labs(title = 'Bike Rentals per Month in 2011-2012 \n Capital Bikeshare in Washington, DC', 
+       caption = 'Source: www.capitalbikeshare.com')
 ```
 
-## Motivating Exercise: group_by()
-
-Now compute the average towing cost grouped by month.
-
-```{r, warning = F}
-baltimore.tow %>% 
-  group_by(month) %>% 
-  summarize(mean.cost = mean(totalPaid))
+## Discrete Points: Stacked Bar 
+```{r,echo=F,fig.align='center'}
+bike.counts <- aggregate(cbind(bike.data$casual,bike.data$registered),by=list(bike.data$month), sum)
+# Stacked Bar Plot with Colors and Legend
+barplot(t(as.matrix(bike.counts[,-1])), 
+        names.arg =collect(select(monthly.counts, month))[[1]], 
+        xlab='Month', 
+        sub ='Source: www.capitalbikeshare.com', ylab='Bike Rentals', main='Bike Rentals per Month in 2011 - 2012 \n Capital Bikeshare in Washington, DC', 
+        col=c("darkblue","red"),legend.text = c("Casual", "Registered"),args.legend = list(x = "topleft"))
 ```
 
-## strsplit() function
-In many situations, the year could be in a different position so the `substr()` might not work. For example month the date could be coded `4/1/2015` rather than `04/01/2015` So consider, using `strsplit()` instead.
-
-*Usage*: strsplit(x, split)
-
-*Arguments*:
-
-- x: character vector, each element of which is to be split. Other inputs, including a factor, will give an error.
-- split: character vector (or object which can be coerced to such) containing regular expression(s) (unless fixed = TRUE) to use for splitting. 
-
-## Exercise: Using the strsplit() function
-Use the strsplit() function to remove the dollar sign from the cost.
-
-## Solution: Using the strsplit() function
-Use the strsplit() function to remove the dollar sign from the cost.
-
-```{r}
-## example for one row
-strsplit(baltimore.tow$totalPaid[1],'$', fixed = T)[[1]][2]
+## Discrete Points in Time: Stacked Bar - Code
+```{r,eval=F, mysize=TRUE, size='\\tiny'}
+bike.counts <- aggregate(cbind(bike.data$casual,bike.data$registered),
+                         by=list(bike.data$month), sum)
+barplot(t(as.matrix(bike.counts[,-1])), 
+        names.arg =collect(select(monthly.counts, month))[[1]], 
+        xlab='Month', sub ='Source: www.capitalbikeshare.com', 
+        ylab='Bike Rentals', 
+        main='Bike Rentals per Month in 2011 - 2012 \n Capital Bikeshare in Washington, DC',
+        col=c("darkblue","red"),legend.text = c("Casual", "Registered"),
+        args.legend = list(x = "topleft"))
 ```
 
-
-## Stringr Package
-The `stringr` package ([cheat sheet](https://github.com/rstudio/cheatsheets/raw/master/strings.pdf)) provides a nice set of tools. There is also an [information page](https://stringr.tidyverse.org/articles/from-base.html).
-
-
-
-## Exercise: Stringr approach
-Use the `stringr` package to remove (replace) the dollar sign. Note that a dollar sign is a special character, so you'll need to use `\\$`.
-
-## Solution: Stringr approach
-Use the `stringr` package to remove (replace) the dollar sign
-```{r}
-library(stringr)
-baltimore.tow$cost <- as.numeric(str_replace(baltimore.tow$totalPaid, '\\$',''))
+## Discrete Points in Time: Points
+```{r,echo=F}
+plot(rowSums(bike.counts[,-1])~bike.counts[,1],xlab='Month', sub ='Source: www.capitalbikeshare.com', 
+        ylab='Bike Rentals', main='Bike Rentals per Month \n Capital Bikeshare in Washington, DC',
+        col=c("darkblue"),pch=16)
 ```
 
-## Motivating Exercise: group_by()
+## Discrete Points in Time: Points
+```{r,echo=F}
+plot(rowSums(bike.counts[,-1])~bike.counts[,1],xlab='Month', sub ='Source: www.capitalbikeshare.com', 
+        ylab='Bike Rentals', main='Bike Rentals per Month \n Capital Bikeshare in Washington, DC',
+        col=c("darkblue"),pch=16,ylim=c(0,max(rowSums(bike.counts[,-1]))),axes=F)
+axis(2)
+axis(1,at=1:12)
+box()
+```
 
-Now compute the average towing cost grouped by month.
-
-```{r}
-baltimore.tow %>% 
-  group_by(month) %>% 
-  summarize(mean.cost = mean(cost))
+## Discrete Points in Time: Points
+```{r,eval=F, mysize=TRUE, size='\\tiny'}
+plot(rowSums(bike.counts[,-1])~bike.counts[,1],xlab='Month',
+     sub ='Source: www.capitalbikeshare.com', ylab='Bike Rentals', 
+     main='Bike Rentals per Month \n Capital Bikeshare in Washington, DC',
+     col=c("darkblue"),pch=16,axes=F,
+     ylim=c(0,max(rowSums(bike.counts[,-1]))))
+axis(2)
+axis(1,at=1:12)
+box()
 ```
 
 
-## lubridate package
+## Connect the Dots
+```{r,echo=F}
+mean_temp <- bike.data %>% group_by(month) %>% summarize(mean_temp = mean(temp), .groups = 'drop') %>% mutate(month = as.numeric(month))
 
-lubridate is a tidyverse package for manipulating date objects. There is a nice [website](https://lubridate.tidyverse.org).
+ggplot(aes(y=temp, x= month), data = bike.data) + geom_jitter(alpha = .1) + geom_line(inherit.aes = F, aes(y = mean_temp, x = month), data = mean_temp, color = 'red', lwd = 2) + ylab('Average Temp (C)') + xlab('Month') + labs(title = 'Average Temperature in Washington, DC', caption = 'Source: www.capitalbikeshare.com')
+```
 
-## Date objects for Baltimore tow
+## Connect the Dots
+```{r,eval=F, mysize=TRUE, size='\\tiny'}
+mean_temp <- bike.data %>% group_by(month) %>%
+  summarize(mean_temp = mean(temp),.groups = 'drop') %>% 
+  mutate(month = as.numeric(month))
 
-```{r, message=F}
-library(lubridate)
-class(baltimore.tow$receivingDateTime)
-baltimore.tow <- baltimore.tow %>% 
-  mutate(date_time = mdy_hms(receivingDateTime))
-class(baltimore.tow$date_time)
+ggplot(aes(y=temp, x= month), data = bike.data) +
+  geom_jitter(alpha = .1) + 
+  geom_line(inherit.aes = F, aes(y = mean_temp, x = month),
+            data = mean_temp, color = 'red', lwd = 2) +
+  ylab('Average Temp (C)') + xlab('Month') + 
+  labs(title = 'Average Temperature in Washington, DC', 
+                       caption = 'Source: www.capitalbikeshare.com')
+```
+
+## Visualizing Proportions
+
+- What to look for in proportions?
+    - Generally looking for maximum, minimum, and overall distribution.
+- Many of the figures we have discussed are useful here as well: for example, stacked bar charts or points to look at changes in proportions over time.
+- Another possibility, which we will not cover, are plotting with rectangles known as a tree map.
+
+## Visualizing Relationships
+
+- When considering relationships between variables, what are we looking for?
+    - If something goes up, do other variables have a positive relationship, negative relationship, or no relationship.
+    - What is the distribution of your data? (both univariate and multivariate)
+    
+
+
+## Relationships: Scatterplots
+```{r,echo=F}
+bike.data$tempF <- bike.data$temp * 1.8 + 32
+plot(bike.data$count~bike.data$tempF,pch=16,col=rgb(100,0,0,10,max=255),ylab='Hourly Bike Rentals',xlab='Temp (F)',sub ='Source: www.capitalbikeshare.com',main='Hourly Bike Rentals by Temperature')
+bike.fit <- loess(count~tempF,bike.data)
+temp.seq <- seq(min(bike.data$tempF),max(bike.data$tempF))
+lines(predict(bike.fit,temp.seq)~temp.seq,lwd=2)
 ```
 
 
-## Date objects for Baltimore tow
+## Visualizing Relationships: Scatterplots - code
+```{r, eval=F, mysize=TRUE, size='\\scriptsize'}
+bike.data$tempF <- bike.data$temp * 1.8 + 32
+plot(bike.data$count~bike.data$tempF,pch=16,
+     col=rgb(100,0,0,10,max=255),ylab='Hourly Bike Rentals',
+     xlab='Temp (F)',sub ='Source: www.capitalbikeshare.com',
+     main='Hourly Bike Rentals by Temperature')
+bike.fit <- loess(count~tempF,bike.data)
+temp.seq <- seq(min(bike.data$tempF),max(bike.data$tempF))
+lines(predict(bike.fit,temp.seq)~temp.seq,lwd=2)
+```
 
-```{r}
-head(month(baltimore.tow$date_time))
-head(year(baltimore.tow$date_time))
+## Visualizing Relationships: Multivariate Scatterplots
+```{r,echo=T, mysize=TRUE, size='\\scriptsize'}
+pairs(bike.data[,c(12,15,8)])
+```
+
+## Multivariate Scatterplots
+```{r,echo=F, mysize=TRUE, size='\\scriptsize'}
+par(mfcol=c(2,2),oma = c(1,0,0,0))
+bike.data$tempF <- bike.data$temp * 1.8 + 32
+plot(bike.data$count~bike.data$tempF,pch=16,col=rgb(100,0,0,10,max=255),
+     ylab='Hourly Bike Rentals',xlab='Temp (F)',main='Hourly Bike Rentals by Temperature')
+bike.fit <- loess(count~tempF,bike.data)
+temp.seq <- seq(min(bike.data$tempF),max(bike.data$tempF))
+lines(predict(bike.fit,temp.seq)~temp.seq,lwd=2)
+
+plot(bike.data$count~bike.data$humidity,pch=16,col=rgb(100,0,100,10,max=255),
+     ylab='Hourly Bike Rentals',xlab='Humidity (%)',main='Hourly Bike Rentals by Humidity')
+bike.fit <- loess(count~humidity,bike.data)
+humidity.seq <- seq(min(bike.data$humidity),max(bike.data$humidity))
+lines(predict(bike.fit,humidity.seq)~humidity.seq,lwd=2)
+
+plot(bike.data$count~bike.data$windspeed,pch=16,col=rgb(0,0,100,10,max=255),
+     ylab='Hourly Bike Rentals',xlab='Windspeed (MPH)',main='Hourly Bike Rentals by Windspeed')
+bike.fit <- loess(count~windspeed,bike.data)
+windspeed.seq <- seq(min(bike.data$windspeed),max(bike.data$windspeed))
+lines(predict(bike.fit,windspeed.seq)~windspeed.seq,lwd=2)
+
+plot(bike.data$count~as.factor(bike.data$weather),col=rgb(0,100,0,255,max=255),
+     ylab='Hourly Bike Rentals',xlab='Weather Conditions',main='Hourly Bike Rentals by Weather')
+
+mtext('Source: www.capitalbikeshare.com', outer = TRUE, cex = .9, side=1)
+par(mfcol=c(1,1),oma = c(0,0,0,0))
+```
+
+## Relationships: Multivariate Scatterplots 
+```{r, eval=F, mysize=TRUE, size='\\tiny'}
+par(mfcol=c(2,2),oma = c(1,0,0,0))
+bike.data$tempF <- bike.data$temp * 1.8 + 32
+plot(bike.data$count~bike.data$tempF,pch=16,col=rgb(100,0,0,10,max=255),
+     ylab='Hourly Bike Rentals',xlab='Temp (F)',
+     main='Hourly Bike Rentals by Temperature')
+bike.fit <- loess(count~tempF,bike.data)
+temp.seq <- seq(min(bike.data$tempF),max(bike.data$tempF))
+lines(predict(bike.fit,temp.seq)~temp.seq,lwd=2)
+
+plot(bike.data$count~bike.data$humidity,pch=16,
+     col=rgb(100,0,100,10,max=255),
+     ylab='Hourly Bike Rentals',xlab='Humidity (%)',
+     main='Hourly Bike Rentals by Humidity')
+bike.fit <- loess(count~humidity,bike.data)
+humidity.seq <- seq(min(bike.data$humidity),max(bike.data$humidity))
+lines(predict(bike.fit,humidity.seq)~humidity.seq,lwd=2)
+
+plot(bike.data$count~bike.data$windspeed,pch=16,col=rgb(0,0,100,10,max=255),
+     ylab='Hourly Bike Rentals',xlab='Windspeed (MPH)',main='Hourly Bike Rentals by Windspeed')
+bike.fit <- loess(count~windspeed,bike.data)
+windspeed.seq <- seq(min(bike.data$windspeed),max(bike.data$windspeed))
+lines(predict(bike.fit,windspeed.seq)~windspeed.seq,lwd=2)
+
+plot(bike.data$count~as.factor(bike.data$weather),col=rgb(0,100,0,255,max=255),
+     ylab='Hourly Bike Rentals',xlab='Weather Conditions',main='Hourly Bike Rentals by Weather')
+
+mtext('Source: www.capitalbikeshare.com', outer = TRUE, cex = .9, side=1)
+par(mfcol=c(1,1),oma = c(0,0,0,0))
+
 ```
 
 
-
-# Goal 2. Type of Vehicles Towed by Month
-
-
-## Goal 2. Type of Vehicles Towed by Month
-Next we wish to compute how many vehicles were towed for each vehicle type
-
-However, we want to take a close look at the vehicle types in the data set and perhaps create more useful groups.
-
-## Unique function - how to group vehicles
-First examine the unique types of vehicles in this data set.
-
-```{r}
-unique(baltimore.tow$vehicleType)
+## Relationships: Histograms
+```{r,  echo = F}
+hist(bike.data$tempF,prob=T, main='Temperature (F)',col='red',xlab='')
 ```
 
-## Grouping
-First consider reasonable groups for vehicle types.
-
-1. Cars - (Car, convertible)
-2. Large Cars - (SUV, Station Wagon, Sport Utility Vehicle, Van, Taxi)
-3. Trucks - (Pick-up Truck, Pickup Truck)
-4. Large Trucks - (Truck, Tractor Trailer, Tow Truck, Tractor, Construction Equipment, Commercial Truck)
-5. Bikes - (Motor Cycle (Street Bike), Dirt Bike, All terrain - 4 wheel bike, Mini-Bike)
-6. Misc (delete) - (Boat, Golf Cart, Trailer)
-
-## Messy Data: Grouping
-Next examine values in some of these groups, we will just look at the vehicle type of 'Truck'.
-
-```{r, mysize=TRUE, size='\\scriptsize', tidy=T}
-unique(baltimore.tow$vehicleMake[baltimore.tow$vehicleType == 'Truck'])
-```
-\normalsize
-Note that there are several spelling errors in this data set. How do we combine them?
-
-
-## Messy Data: Data Cleaning
-Spelling errors can be addressed, by reassigning vehicles to the correct spelling.
-```{r}
-baltimore.tow$vehicleMake[baltimore.tow$vehicleMake == 
-                            'Peterbelt'] <- 'Peterbilt'
-baltimore.tow$vehicleMake[baltimore.tow$vehicleMake == 
-                            'Internantional'] <- 'International'
-baltimore.tow$vehicleMake <-
-  str_replace(baltimore.tow$vehicleMake,'Izuzu','Isuzu')
-baltimore.tow$vehicleMake <-
-  str_replace(baltimore.tow$vehicleMake,'Frightliner','Freightliner')
-```
-Also note that many of the groupings have mis-classified vehicles, but we will not focus on that yet.
-
-## Exercise: Delete Misc. Type Vehicles
-
-First we will delete golf carts, boats, and trailers. There are several ways to do this, consider making a new data frame called balt.tow.small that does not include golf carts, boats, and trailers.
-
-## Solution: Delete Misc. Type Vehicles
-
-First we will delete golf carts, boats, and trailers.
-
-```{r}
-balt.tow.small <- baltimore.tow %>% 
-  filter(!vehicleType %in% c("Golf Cart",'Boat', 'Trailer'))
+## Relationships: Histograms
+```{r,  eval = F}
+hist(bike.data$tempF,prob=T, main='Temperature (F)',col='red',xlab='')
 ```
 
 
-## Exercise: Create Additional Groups
+## Multiple Histograms
+```{r,echo=F}
+par(mfrow=c(2,1))
+bike.data$reltempF <- bike.data$atemp * 1.8 + 32
 
-Now we need to create a variable for the additional groups below.
-
-1. Cars - (Car, convertible)
-2. Large Cars - (SUV, Station Wagon, Sport Utility Vehicle, Van, Taxi)
-3. Trucks - (Pick-up Truck, Pickup Truck)
-4. Large Trucks - (Truck, Tractor Trailer, Tow Truck, Tractor, Construction Equipment, Commercial Truck)
-5. Bikes - (Motor Cycle (Street Bike), Dirt Bike, All terrain - 4 wheel bike, Mini-Bike)
-
-
-## Solution: Create Additional Groups
-
-One way to create groups is by creating a new variable
-
-```{r}
-balt.tow.small$Group <- ''
-
-balt.tow.small$Group[balt.tow.small$vehicleType %in% 
-                       c('Car','Convertible')] <- 'Cars'
-
-balt.tow.small$Group[balt.tow.small$vehicleType %in% c('SUV',
- 'Station Wagon','Sport Utility Vehicle','Van','Taxi')] <- 'Large Cars'
-
-balt.tow.small$Group[balt.tow.small$vehicleType %in% 
-                       c('Pick-up Truck','Pickup Truck')] <- 'Trucks'
-
-balt.tow.small$Group[balt.tow.small$vehicleType %in% 
-    c('Truck','Tractor Trailer','Tow Truck','Tractor',
-      'Construction Equipment','Commercial Truck')] <- 'Large Trucks'
-
-balt.tow.small$Group[balt.tow.small$vehicleType %in% 
-    c('Motor Cycle (Street Bike)','Dirt Bike','Mini-Bike',
-      'All terrain - 4 wheel bike')] <- 'Bikes'
+hist(bike.data$tempF,prob=T,breaks='FD',
+     main='Temperature (F)',col='red',xlab='',xlim=c(0,max(c(bike.data$reltempF,bike.data$tempF))))
+hist(bike.data$reltempF,prob=T,breaks='FD',
+     main='Relative Temperature (F)',col='orange',xlab='',
+     xlim=c(0,max(c(bike.data$reltempF,bike.data$tempF))))
 ```
 
 
-## Solution: dplyr
-Next we wish to compute how many vehicles were towed for each vehicle type
+## Visualizing Relationships: Multiple Histograms - Code
+```{r, eval=F, mysize=TRUE, size='\\footnotesize'}
+par(mfrow=c(2,1))
+bike.data$reltempF <- bike.data$atemp * 1.8 + 32
 
-```{r}
-balt.tow.small %>% group_by(Group) %>% tally()
+hist(bike.data$tempF,prob=T,breaks='FD',
+     main='Temperature (F)',col='red',xlab='',
+     xlim=c(0,max(c(bike.data$reltempF,bike.data$tempF))))
+hist(bike.data$reltempF,prob=T,breaks='FD',
+     main='Relative Temperature (F)',col='orange',xlab='',
+     xlim=c(0,max(c(bike.data$reltempF,bike.data$tempF))))
 ```
+
+
+## Exercise: Visualizing Relationships
+
+- Summarize (visually) some relationship from the bike data set
